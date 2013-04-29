@@ -281,11 +281,8 @@ function retriever_item_completed($retriever_item_id, $resource) {
         logger('@@@ no retriever item ' . $retriever_item_id);
         return;
     }
+    // Note: the retriever might be null.  Doesn't matter.
     $retriever = get_retriever($retriever_item['contact-id'], $retriever_item['item-uid']);
-    if (!$retriever) {
-        logger('@@@ no retriever for ' . $retriever_item['contact-id'] . ' ' . $retriever_item['item-uid']);
-        return;
-    }
     $item = retriever_get_item($retriever_item);
     if (!$item) {
         logger('@@@ no item');
