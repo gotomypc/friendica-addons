@@ -202,6 +202,7 @@ function retriever_retrieve_items($max_items) {
             continue;
         }
         retriever_apply_completed_resource_to_item($retriever, $item, $resource[0]);
+        logger('@@@ retriever_retrieve_items setting retriever_item finished id ' . $retriever_item['id']);
         q("UPDATE `retriever_item` SET `finished` = 1 WHERE id = %d",
           intval($retriever_item['id']));
         retriever_check_item_completed($item);
@@ -227,6 +228,7 @@ function retrieve_resource($resource) {
     $resource['type'] = get_app()->get_curl_content_type();
     if ($data) {
         $resource['data'] = $data;
+        logger('@@@ retrieve_resource setting retriever_resource to completed id ' . $resource['id']);
         q("UPDATE `retriever_resource` SET `completed` = now(), `data` = '%s', `type` = '%s' WHERE id = %d",
           dbesc($data), dbesc($resource['type']), intval($resource['id']));
         retriever_resource_completed($resource);
@@ -276,19 +278,23 @@ function retriever_item_completed($retriever_item_id, $resource) {
 
     $retriever_item = retriever_get_retriever_item($retriever_item_id);
     if (!$retriever_item) {
+        logger('@@@ no retriever item ' . $retriever_item_id);
         return;
     }
     $retriever = get_retriever($retriever_item['contact-id'], $retriever_item['item-uid']);
     if (!$retriever) {
+        logger('@@@ no retriever for ' . $retriever_item['contact-id'] . ' ' . $retriever_item['item-uid']);
         return;
     }
     $item = retriever_get_item($retriever_item);
     if (!$item) {
+        logger('@@@ no item');
         return;
     }
 
     retriever_apply_completed_resource_to_item($retriever, $item, $resource);
 
+    logger('@@@ retriever_item_completed setting retriever_item finished id ' . $retriever_item['id']);
     q("UPDATE `retriever_item` SET `finished` = 1 WHERE id = %d",
       intval($retriever_item['id']));
     retriever_check_item_completed($item);
@@ -298,6 +304,7 @@ function retriever_resource_completed($resource) {
     logger('retriever_resource_completed: id ' . $resource['id'] . ' url ' . $resource['url'], LOGGER_DEBUG);
     $r = q("SELECT `id` FROM `retriever_item` WHERE `resource` = %d", $resource['id']);
     foreach ($r as $rr) {
+        logger('@@@ retriever_resource_completed found item ' . $rr['id']);
         retriever_item_completed($rr['id'], $resource);
     }
 }
